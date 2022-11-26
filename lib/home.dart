@@ -6,12 +6,13 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:swifeeapp/constants/app_assets.dart';
 import 'package:swifeeapp/gest.dart';
-import 'package:swifeeapp/globals.dart';
+import 'package:swifeeapp/constants/globals.dart';
 import 'package:swifeeapp/repos/list.dart';
 import 'package:swifeeapp/repos/topics.dart';
 import 'package:swifeeapp/topic_app_bar.dart';
 
 import 'app_bar.dart';
+import 'constants/globals.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with WidgetsBindingObserver {
   ScrollController? scroll;
+  late PullToRefreshController pullController;
 
   var themeAppBarSelected = false;
   double progress = 0;
@@ -35,6 +37,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    pullController = PullToRefreshController(
+      onRefresh: () {
+        navIndex--;
+      },
+    );
   }
 
   void scrollWebView(xWebView, yWebView) {
@@ -60,6 +67,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   bool pageIsScrolling = false;
   late int navIndex;
   late int pageSize;
+  late String? urlRecord = '';
 
   @override
   Widget build(BuildContext context) {
@@ -72,11 +80,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           children: [
             AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
-                height: themeAppBarSelected ? 0 : size.height * .1,
-                curve: Curves.ease,
-                child: AppBarUrl(urlWidgetController: urlController)),
-            AnimatedContainer(
                 height: themeAppBarSelected ? size.height * .1 : 0,
+                curve: Curves.ease,
+                child: AppBarUrl(
+                  urlWidgetController: urlController,
+                  url: urlRecord!,
+                )),
+            AnimatedContainer(
+                height: themeAppBarSelected ? 0 : size.height * .1,
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.ease,
                 child: TopicAppBar(
@@ -103,6 +114,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         itemBuilder: (context, insideIndex) {
                           pageSize = webs[index].length;
                           navIndex = insideIndex;
+
                           int sizeOfWebs = 0;
                           return Stack(
                             children: [
@@ -121,6 +133,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                   onScrollChanged: (controller, x, y) {
                                     scrollWebView(x, y);
                                   },
+                                  // onLoadStop: (controller, uri) {
+                                  //   setState(() {
+                                  //     urlRecord = uri!.toString();
+                                  //   });
+                                  // },
+                                  onUpdateVisitedHistory:
+                                      (controller, uri, androidIsReload) {
+                                    setState(() {
+                                      urlRecord = uri!.toString();
+                                    });
+                                  },
+
+                                  // pullToRefreshController: pullController,
                                   initialUrlRequest: URLRequest(
                                     url: Uri.parse(webs[index][insideIndex]),
                                   ),

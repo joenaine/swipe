@@ -3,16 +3,18 @@ import 'package:flutter_svg/svg.dart';
 import 'package:swifeeapp/constants/app_assets.dart';
 import 'package:swifeeapp/constants/app_colors_const.dart';
 
-import 'globals.dart';
+import 'constants/globals.dart';
 
 class AppBarUrl extends StatefulWidget {
   final UrlWidgetController urlWidgetController;
+  final String url;
   final Widget? widget;
 
   // ignore: use_key_in_widget_constructors
   const AppBarUrl({
     required this.urlWidgetController,
     this.widget,
+    required this.url,
   });
 
   @override
@@ -57,11 +59,11 @@ class AppBarUrlState extends State<AppBarUrl> {
                   color: AppColors.grey25,
                   borderRadius: BorderRadius.circular(25)),
               padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
-              child: const Text(
-                'dataasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdaasds',
+              child: Text(
+                widget.url,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
             SvgPicture.asset(
