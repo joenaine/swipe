@@ -1,9 +1,17 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:swifeeapp/constants/app_assets.dart';
 import 'package:swifeeapp/gest.dart';
+import 'package:swifeeapp/globals.dart';
 import 'package:swifeeapp/repos/list.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:swifeeapp/repos/topics.dart';
+import 'package:swifeeapp/topic_app_bar.dart';
+
+import 'app_bar.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -12,9 +20,36 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
+  ScrollController? scroll;
+
+  var themeAppBarSelected = false;
+  double progress = 0;
+  InAppWebViewController? webViewController;
+
+  var durationSwipePost = const Duration(seconds: 1);
+  var x = 0;
+  var y = 0;
+  final PageController horizontalController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void scrollWebView(xWebView, yWebView) {
+    if (y < yWebView) {
+      themeAppBarSelected = true;
+    } else {
+      themeAppBarSelected = false;
+    }
+    setState(() {});
+    y = yWebView;
+  }
+
   static ValueKey key = const ValueKey('key_0');
   final PageController _verticalController = PageController();
+  final PageController _horizontalController = PageController();
 
   void navToPage(int index) {
     _verticalController.animateToPage(index,
@@ -22,65 +57,183 @@ class _HomeState extends State<Home> {
   }
 
   int pageNumber = 0;
+  bool pageIsScrolling = false;
+  late int navIndex;
+  late int pageSize;
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      floatingActionButton: FloatingActionButton(onPressed: () {
-        if (pageNumber < webs.length) {
-          pageNumber++;
-        }
-        print(pageNumber);
-        navToPage(pageNumber);
-      }),
-      body: PageView.builder(
-        itemCount: webs.length,
-        itemBuilder: (context, index) {
-          return PageView.builder(
-            controller: _verticalController,
-            scrollDirection: Axis.vertical,
-            itemCount: webs.length,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, insideIndex) {
-              int pageSize = webs[index].length;
-              int navIndex = insideIndex;
-              int sizeOfWebs = 0;
-              return Stack(
+      body: SafeArea(
+        child: Column(
+          children: [
+            AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                height: themeAppBarSelected ? 0 : size.height * .1,
+                curve: Curves.ease,
+                child: AppBarUrl(urlWidgetController: urlController)),
+            AnimatedContainer(
+                height: themeAppBarSelected ? size.height * .1 : 0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.ease,
+                child: TopicAppBar(
+                  listOfTopics: topics,
+                  indexActive: pageNumber,
+                )),
+            Expanded(
+              child: Stack(
                 children: [
-                  SizedBox(
-                    height: size.height,
-                    width: size.width,
-                    child: Center(
-                      child: WebView(
-                        initialUrl: webs[index][insideIndex],
-                        gestureRecognizers: {
-                          Factory(() => PlatformViewVerticalGestureRecognizer(
-                                kind: PointerDeviceKind.touch,
-                              )),
+                  PageView.builder(
+                    onPageChanged: (value) {
+                      setState(() {
+                        pageNumber = value;
+                      });
+                    },
+                    controller: _horizontalController,
+                    itemCount: webs.length,
+                    itemBuilder: (context, index) {
+                      return PageView.builder(
+                        controller: _verticalController,
+                        scrollDirection: Axis.vertical,
+                        itemCount: webs.length,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, insideIndex) {
+                          pageSize = webs[index].length;
+                          navIndex = insideIndex;
+                          int sizeOfWebs = 0;
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  topRight: Radius.circular(15),
+                                ),
+                                child: InAppWebView(
+                                  gestureRecognizers: {
+                                    Factory(() =>
+                                        PlatformViewVerticalGestureRecognizer(
+                                          kind: PointerDeviceKind.touch,
+                                        )),
+                                  },
+                                  onScrollChanged: (controller, x, y) {
+                                    scrollWebView(x, y);
+                                  },
+                                  initialUrlRequest: URLRequest(
+                                    url: Uri.parse(webs[index][insideIndex]),
+                                  ),
+                                  onWebViewCreated: (controller) async {
+                                    webViewController = controller;
+                                    webViewController?.addJavaScriptHandler(
+                                        handlerName: 'themeAppBar',
+                                        callback: (args) {
+                                          setState(() {
+                                            themeAppBarSelected =
+                                                !themeAppBarSelected;
+                                          });
+                                          print("Плашка двигается!");
+                                        });
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
                         },
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   Align(
                     alignment: Alignment.bottomCenter,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          if (navIndex < webs[index].length - 1) {
-                            navIndex++;
-                          }
-                          print('index' '$navIndex');
-                          navToPage(navIndex);
-                        },
-                        child: const Text('data')),
-                  )
+                    child: Container(
+                      height: 60,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              topRight: Radius.circular(15))),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SvgPicture.asset(AppAssets.svg.settings),
+                          InkWell(
+                              onTap: () {
+                                if (navIndex < pageSize - 1) {
+                                  navIndex++;
+                                }
+                                print('index' '$navIndex');
+                                navToPage(navIndex);
+                              },
+                              child: SvgPicture.asset(AppAssets.svg.moveTop)),
+                          SvgPicture.asset(AppAssets.svg.profile),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Align(
+                  //     alignment: Alignment.topCenter,
+                  //     child: ClipRect(
+                  //       child: BackdropFilter(
+                  //         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  //         child: Container(
+                  //           width: MediaQuery.of(context).size.width,
+                  //           height: (MediaQuery.of(context).size.height * 0.1),
+                  //           color: AppColors.dark,
+                  //         ),
+                  //       ),
+                  //     )),
+                  // AnimatedPositioned(
+                  //     duration: const Duration(seconds: 1),
+                  //     top: themeAppBarSelected ? -200 : 0,
+                  //     curve: Curves.ease,
+                  //     child: AppBarUrl(urlWidgetController: urlController)),
+                  // AnimatedPositioned(
+                  //     top: themeAppBarSelected ? 0 : -200,
+                  //     duration: const Duration(seconds: 1),
+                  //     curve: Curves.ease,
+                  //     child: TopicAppBar(
+                  //       listOfTopics: topics,
+                  //     )),
                 ],
-              );
-            },
-          );
-        },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  void _onScroll(double offset) {
+    if (pageIsScrolling == false) {
+      pageIsScrolling = true;
+      if (offset > 0) {
+        _verticalController
+            .nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut)
+            .then((value) => pageIsScrolling = false);
+
+        print('scroll down');
+      } else {
+        _verticalController
+            .previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut)
+            .then((value) => pageIsScrolling = false);
+        print('scroll up');
+      }
+    }
+  }
 }
+
+// ElevatedButton(
+//                               onPressed: () {
+//                                 if (navIndex < webs[index].length - 1) {
+//                                   navIndex++;
+//                                 }
+//                                 print('index' '$navIndex');
+//                                 navToPage(navIndex);
+//                               },
+//                               child: const Text('data'))

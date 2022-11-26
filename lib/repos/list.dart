@@ -1,6 +1,6 @@
 List<List<String>> webs = [
   [
-    'https://docs.flutter.dev/',
+    'https://izidos.com/',
     'https://jut.su',
     'https://vk.com',
   ],

@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:swifeeapp/constants/app_colors_const.dart';
 import 'package:swifeeapp/home.dart';
 
 void main() {
@@ -24,6 +25,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
+        scaffoldBackgroundColor: AppColors.dark,
+        primaryTextTheme:
+            const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
         primarySwatch: Colors.blue,
       ),
       home: const Home(),
