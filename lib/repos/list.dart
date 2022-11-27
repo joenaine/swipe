@@ -10,6 +10,10 @@ List<List<String>> webs = [
   ],
   [
     'https://www.facebook.com',
-    'https://jut.su',
+    'https://m.youtube.com/@user-yp9ew4hx6h',
+  ],
+  [
+    'https://www.apple.com',
+    'https://m.youtube.com/@GRAVEMINDunderground',
   ],
 ];

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:swifeeapp/constants/app_assets.dart';
+import 'package:swifeeapp/constants/app_colors_const.dart';
 import 'package:swifeeapp/gest.dart';
 import 'package:swifeeapp/constants/globals.dart';
 import 'package:swifeeapp/repos/list.dart';
@@ -175,7 +176,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       height: 60,
                       width: double.infinity,
                       decoration: const BoxDecoration(
-                          color: Colors.black,
+                          color: AppColors.dark,
                           borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(15),
                               topRight: Radius.circular(15))),
