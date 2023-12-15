@@ -13,6 +13,7 @@ import 'package:swifeeapp/repos/topics.dart';
 import 'package:swifeeapp/topic_app_bar.dart';
 
 import 'app_bar.dart';
+import 'app_global_loader_widget.dart';
 import 'constants/globals.dart';
 
 class Home extends StatefulWidget {
@@ -69,6 +70,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   late int navIndex;
   late int pageSize;
   late String? urlRecord = '';
+  int _stackIndex = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +96,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 child: TopicAppBar(
                   listOfTopics: topics,
                   indexActive: pageNumber,
+                  horizontalController: _horizontalController,
                 )),
             Expanded(
               child: Stack(
@@ -124,44 +127,73 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                   topLeft: Radius.circular(15),
                                   topRight: Radius.circular(15),
                                 ),
-                                child: InAppWebView(
-                                  gestureRecognizers: {
-                                    Factory(() =>
-                                        PlatformViewVerticalGestureRecognizer(
-                                          kind: PointerDeviceKind.touch,
-                                        )),
-                                  },
-                                  onScrollChanged: (controller, x, y) {
-                                    scrollWebView(x, y);
-                                  },
-                                  // onLoadStop: (controller, uri) {
-                                  //   setState(() {
-                                  //     urlRecord = uri!.toString();
-                                  //   });
-                                  // },
-                                  onUpdateVisitedHistory:
-                                      (controller, uri, androidIsReload) {
-                                    setState(() {
-                                      urlRecord = uri!.toString();
-                                    });
-                                  },
-
-                                  // pullToRefreshController: pullController,
-                                  initialUrlRequest: URLRequest(
-                                    url: Uri.parse(webs[index][insideIndex]),
-                                  ),
-                                  onWebViewCreated: (controller) async {
-                                    webViewController = controller;
-                                    webViewController?.addJavaScriptHandler(
-                                        handlerName: 'themeAppBar',
-                                        callback: (args) {
-                                          setState(() {
-                                            themeAppBarSelected =
-                                                !themeAppBarSelected;
-                                          });
-                                          print("Плашка двигается!");
+                                child: IndexedStack(
+                                  index: _stackIndex,
+                                  children: [
+                                    InAppWebView(
+                                      gestureRecognizers: {
+                                        Factory(() =>
+                                            PlatformViewVerticalGestureRecognizer(
+                                              kind: PointerDeviceKind.touch,
+                                            )),
+                                      },
+                                      onScrollChanged: (controller, x, y) {
+                                        scrollWebView(x, y);
+                                      },
+                                      // onLoadStop: (controller, uri) {
+                                      //   setState(() {
+                                      //     urlRecord = uri!.toString();
+                                      //   });
+                                      // },
+                                      onUpdateVisitedHistory:
+                                          (controller, uri, androidIsReload) {
+                                        setState(() {
+                                          urlRecord = uri!.toString();
                                         });
-                                  },
+                                      },
+
+                                      // pullToRefreshController: pullController,
+                                      initialUrlRequest: URLRequest(
+                                        url:
+                                            Uri.parse(webs[index][insideIndex]),
+                                      ),
+                                      onWebViewCreated: (controller) async {
+                                        webViewController = controller;
+                                        webViewController?.addJavaScriptHandler(
+                                            handlerName: 'themeAppBar',
+                                            callback: (args) {
+                                              setState(() {
+                                                themeAppBarSelected =
+                                                    !themeAppBarSelected;
+                                              });
+                                              print("Плашка двигается!");
+                                            });
+                                      },
+                                      onLoadStart: (_, __) {
+                                        setState(() {
+                                          _stackIndex = 0;
+                                        });
+                                      },
+                                      onLoadStop: (_, __) {
+                                        setState(() {
+                                          _stackIndex = 0;
+                                        });
+                                      },
+                                      onLoadError: (_, __, ___, ____) {
+                                        setState(() {
+                                          _stackIndex = 1;
+                                        });
+                                        //TODO: Show error alert message (Error in receive data from server)
+                                      },
+                                      onLoadHttpError: (_, __, ___, ____) {
+                                        setState(() {
+                                          _stackIndex = 1;
+                                        });
+                                        //TODO: Show error alert message (Error in receive data from server)
+                                      },
+                                    ),
+                                    AppLoaderWidget(),
+                                  ],
                                 ),
                               ),
                             ],

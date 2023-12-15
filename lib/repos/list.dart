@@ -1,6 +1,6 @@
 List<List<String>> webs = [
   [
-    'https://izidos.com/',
+    'https://dzen.ru/a/Y3o2pu6-6HnloGjY',
     'https://jut.su',
     'https://vk.com',
   ],
@@ -9,11 +9,11 @@ List<List<String>> webs = [
     'https://www.google.ru/',
   ],
   [
-    'https://www.facebook.com',
+    'https://dzen.ru/a/Y3o2pu6-6HnloGjY',
     'https://m.youtube.com/@user-yp9ew4hx6h',
   ],
   [
-    'https://www.apple.com',
+    'https://dzen.ru/a/Y3o2pu6-6HnloGjY',
     'https://m.youtube.com/@GRAVEMINDunderground',
   ],
 ];
